@@ -9,9 +9,9 @@ EXTRA_LIBS=@LIBS@
 LOCAL_LDFLAGS=-rdynamic -ggdb ${EXTRA_LIBS}
 LINK_FLAGS=${LDFLAGS} ${LOCAL_LDFLAGS}
 
-DEP=${srcdir}/dep
-EXE=${srcdir}/bin
-OBJ=${srcdir}/objs
+DEP=dep
+EXE=bin
+OBJ=objs
 DIR_LIST=${DEP} ${EXE} ${OBJ}
 
 EXE_LIST=${EXE}/tl-parser
@@ -37,7 +37,7 @@ ${DIR_LIST}:
 
 -include ${DEPENDENCE_LIST}
 
-${OBJECTS}: ${OBJ}/%.o: %.c | create_dirs_and_headers
+${OBJECTS}: ${OBJ}/%.o: ${srcdir}/%.c | create_dirs_and_headers
 	${CC} ${INCLUDE} ${COMPILE_FLAGS} -c -MP -MD -MF ${DEP}/$*.d -MQ ${OBJ}/$*.o -o $@ $<
 
 ${EXE}/tl-parser: ${OBJECTS}
