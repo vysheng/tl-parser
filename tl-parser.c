@@ -34,7 +34,7 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
-#include "tree.h"
+#include "tl-parser-tree.h"
 #include "tl-parser.h"
 #include "crc32.h"
 #include "tl-tl.h"
