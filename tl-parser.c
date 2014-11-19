@@ -1171,9 +1171,10 @@ struct tl_constructor *tl_add_constructor (struct tl_type *a, const char *_id, i
   a->constructors[a->constructors_num ++] = t;
   if (*id != '_') {
     tl_constructor_tree = tree_insert_tl_constructor (tl_constructor_tree, t, lrand48 ());
+  } else {
+    a->flags |= FLAG_DEFAULT_CONSTRUCTOR;
   }
   total_constructors_num ++;
-  a->flags |= FLAG_DEFAULT_CONSTRUCTOR;
   return t;
 }
 
