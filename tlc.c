@@ -37,7 +37,10 @@
 
 #include <signal.h>
 #include "config.h"
+
+#ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
+#endif
 #include <stdarg.h>
 
 int verbosity;
