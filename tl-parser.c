@@ -2741,7 +2741,7 @@ void wstr (const char *s) {
       assert (0);
     }
     wdata (s, x);
-    x ++;
+    x ++; // The header, containing the length, which is 1 byte
     int t = 0;
     if (x & 3) {
       wdata (&t, 4 - (x & 3));

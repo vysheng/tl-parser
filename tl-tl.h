@@ -25,6 +25,9 @@
 #ifndef __TL_TL_H__
 #define __TL_TL_H__
 
+// Current tl-tl schema is V2
+// See https://core.telegram.org/mtproto/TL-tl
+
 #define TLS_SCHEMA_V2 0x3a2f9be2
 #define TLS_TYPE 0x12eb4386
 #define TLS_COMBINATOR 0x5c0a1ed5
