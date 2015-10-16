@@ -2999,7 +2999,12 @@ void write_types (int f) {
   __f = f;
   wint (TLS_SCHEMA_V2);
   wint (0);
+#ifdef TL_PARSER_NEED_TIME
   wint (time (0));
+#else
+  /* Make the tlo reproducible by default. Rationale: https://wiki.debian.org/ReproducibleBuilds/Howto#Introduction */
+  wint (0);
+#endif
   num = 0;
   wint (total_types_num);
   tree_act_tl_type (tl_type_tree, write_type);
