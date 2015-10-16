@@ -35,6 +35,7 @@
 #include <string.h>
 #include <time.h>
 #include <zlib.h>
+#include "portable_endian.h"
 #include "tl-parser-tree.h"
 #include "tl-parser.h"
 #include "tl-tl.h"
@@ -61,6 +62,9 @@ int total_functions_num;
 #define tfree(a,b) free (a)
 #define talloc0(a) calloc(a,1)
 #define tstrdup(a) strdup(a)
+
+typedef char error_int_must_be_4_byte[(sizeof (int) == 4) ? 1 : -1];
+typedef char error_long_long_must_be_8_byte[(sizeof (long long) == 8) ? 1 : -1];
 
 char curch;
 struct parse parse;
@@ -2723,6 +2727,7 @@ int num = 0;
 
 void wint (int a) {
 //  printf ("%d ", a);
+  a = htole32 (a);
   assert (write (__f, &a, 4) == 4);
 }
 
@@ -2735,7 +2740,8 @@ void wstr (const char *s) {
 //    printf ("\"%s\" ", s);
     int x = strlen (s);
     if (x <= 254) {
-      assert (write (__f, &x, 1) == 1);
+      unsigned char x_c = (unsigned char)x;
+      assert (write (__f, &x_c, 1) == 1);
     } else {
       fprintf (stderr, "String is too big...\n");
       assert (0);
@@ -2744,6 +2750,7 @@ void wstr (const char *s) {
     x ++; // The header, containing the length, which is 1 byte
     int t = 0;
     if (x & 3) {
+      // Let's hope it's truly zero on every platform
       wdata (&t, 4 - (x & 3));
     }
   } else {
@@ -2754,6 +2761,7 @@ void wstr (const char *s) {
 
 void wll (long long a) {
 //  printf ("%lld ", a);
+  a = htole64 (a);
   assert (write (__f, &a, 8) == 8);
 }
 
