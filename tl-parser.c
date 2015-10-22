@@ -41,6 +41,12 @@
 #include "tl-tl.h"
 #include "config.h"
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#define INT64_PRINTF_MODIFIER "I64"
+#else
+#define INT64_PRINTF_MODIFIER "ll"
+#endif
+
 extern int verbosity;
 extern int schema_version;
 extern int output_expressions;
@@ -333,13 +339,13 @@ int expect (char *s) {
 struct parse *tl_init_parse_file (const char *fname) {
   int fd = open (fname, O_RDONLY);
   if (fd < 0) {
-    fprintf (stderr, "Error %m\n");
+    fprintf (stderr, "Error %s\n", strerror(errno));
     assert (0);
     return 0;
   }
   long long size = lseek (fd, 0, SEEK_END);
   if (size <= 0) {
-    fprintf (stderr, "size is %lld. Too small.\n", size);
+    fprintf (stderr, "size is %" INT64_PRINTF_MODIFIER "d. Too small.\n", size);
     return 0;
   }
   static struct parse save;
@@ -930,7 +936,7 @@ void tl_set_var_value (struct tree_var_value **T, struct tl_combinator_tree *var
   if (tree_lookup_var_value (*T, t).ptr) {
     *T = tree_delete_var_value (*T, t);
   }
-  *T = tree_insert_var_value (*T, t, lrand48 ());
+  *T = tree_insert_var_value (*T, t, rand ());
 }
 
 void tl_set_var_value_num (struct tree_var_value **T, struct tl_combinator_tree *var, struct tl_combinator_tree *value, long long num_value) {
@@ -938,7 +944,7 @@ void tl_set_var_value_num (struct tree_var_value **T, struct tl_combinator_tree 
   if (tree_lookup_var_value (*T, t).ptr) {
     *T = tree_delete_var_value (*T, t);
   }
-  *T = tree_insert_var_value (*T, t, lrand48 ());
+  *T = tree_insert_var_value (*T, t, rand ());
 }
 
 struct tl_combinator_tree *tl_get_var_value (struct tree_var_value **T, struct tl_combinator_tree *var) {
@@ -975,7 +981,7 @@ int tl_add_field (char *id) {
   if (tree_lookup_tl_field (fields[namespace_level], id)) {
     return 0;
   }
-  fields[namespace_level] = tree_insert_tl_field (fields[namespace_level], id, lrand48 ());
+  fields[namespace_level] = tree_insert_tl_field (fields[namespace_level], id, rand ());
   return 1;
 }
 
@@ -993,7 +999,7 @@ struct tl_var *tl_add_var (char *id, struct tl_combinator_tree *ptr, int type) {
   if (tree_lookup_tl_var (vars[namespace_level], v)) {
     return 0;
   }
-  vars[namespace_level] = tree_insert_tl_var (vars[namespace_level], v, lrand48 ());
+  vars[namespace_level] = tree_insert_tl_var (vars[namespace_level], v, rand ());
   if (type) {
     last_num_var[namespace_level] = v;
   }
@@ -1084,7 +1090,7 @@ struct tl_type *tl_add_type (const char *_id, int len, int params_num, long long
     t->flags |= 4;
     t->params_num = -1;
   }
-  tl_type_tree = tree_insert_tl_type (tl_type_tree, t, lrand48 ());
+  tl_type_tree = tree_insert_tl_type (tl_type_tree, t, rand ());
   total_types_num ++;
   return t;
 }
@@ -1176,7 +1182,7 @@ struct tl_constructor *tl_add_constructor (struct tl_type *a, const char *_id, i
   assert (a->constructors);
   a->constructors[a->constructors_num ++] = t;
   if (*id != '_') {
-    tl_constructor_tree = tree_insert_tl_constructor (tl_constructor_tree, t, lrand48 ());
+    tl_constructor_tree = tree_insert_tl_constructor (tl_constructor_tree, t, rand ());
   } else {
     a->flags |= FLAG_DEFAULT_CONSTRUCTOR;
   }
@@ -1232,7 +1238,7 @@ struct tl_constructor *tl_add_function (struct tl_type *a, const char *_id, int 
   }
 
   t->left = t->right = 0;
-  tl_function_tree = tree_insert_tl_constructor (tl_function_tree, t, lrand48 ());
+  tl_function_tree = tree_insert_tl_constructor (tl_function_tree, t, rand ());
   total_functions_num ++;
   return t;
 }
@@ -1352,7 +1358,7 @@ void tl_buf_add_tree (struct tl_combinator_tree *T, int x) {
       tl_buf_add_string_q ((char *)v->data, -1, x);
       if (T->type == type_num && T->type_flags) {
         static char _buf[30];
-        sprintf (_buf, "+%lld", T->type_flags);
+        sprintf (_buf, "+%" INT64_PRINTF_MODIFIER "d", T->type_flags);
         tl_buf_add_string_q (_buf, -1, 0);
       }
     }
@@ -1379,7 +1385,7 @@ void tl_buf_add_tree (struct tl_combinator_tree *T, int x) {
   case act_nat_const:
     {
       static char _buf[30];
-      snprintf (_buf, 29, "%lld", T->type_flags);
+      snprintf (_buf, 29, "%" INT64_PRINTF_MODIFIER "d", T->type_flags);
       tl_buf_add_string_q (_buf, -1, x);
       return;
     }
@@ -1389,7 +1395,7 @@ void tl_buf_add_tree (struct tl_combinator_tree *T, int x) {
       tl_buf_add_string_q ((char *)v->data, -1, x);
       tl_buf_add_string_q (".", -1, 0);
       static char _buf[30];
-      sprintf (_buf, "%lld", T->left->type_flags);
+      sprintf (_buf, "%" INT64_PRINTF_MODIFIER "d", T->left->type_flags);
       tl_buf_add_string_q (_buf, -1, 0);
       tl_buf_add_string_q ("?", -1, 0);
       tl_buf_add_tree (T->right, 0);
@@ -1517,7 +1523,7 @@ struct tl_combinator_tree *tl_union (struct tl_combinator_tree *L, struct tl_com
       return 0;     
     }
     if (L->type_len > 0 && ((L->type_flags & 1) != (R->type == type_num || R->type == type_num_value))) {
-      TL_ERROR ("Argument types mistmatch: L->type_flags = %lld, R->type = %s\n", L->flags, TL_TYPE (R->type));
+      TL_ERROR ("Argument types mistmatch: L->type_flags = %" INT64_PRINTF_MODIFIER "d, R->type = %s\n", L->flags, TL_TYPE (R->type));
       return 0;
     }
     v->type = type_type;
@@ -1904,7 +1910,7 @@ struct tl_combinator_tree *tl_parse_args134 (struct tree *T) {
       char *name = S->data;
       if (!name) {
         static char s[20];
-        sprintf (s, "%lld", lrand48 () * (1ll << 32) + lrand48 ());
+        sprintf (s, "%" INT64_PRINTF_MODIFIER "d", rand () * (1ll << 32) + rand ());
         name = s;
       }
       struct tl_var *v = tl_add_var (name, S, tt);
@@ -2760,7 +2766,7 @@ void wstr (const char *s) {
 }
 
 void wll (long long a) {
-//  printf ("%lld ", a);
+//  printf ("%" INT64_PRINTF_MODIFIER "d ", a);
   a = htole64 (a);
   assert (write (__f, &a, 8) == 8);
 }
@@ -2787,7 +2793,7 @@ void write_type_flags (long long flags) {
 
 void write_field_flags (long long flags) {
   int new_flags = 0;
-  //fprintf (stderr, "%lld\n", flags);
+  //fprintf (stderr, "%" INT64_PRINTF_MODIFIER "d\n", flags);
   if (flags & 1) {
     new_flags |= FLAG_BARE;
   }
