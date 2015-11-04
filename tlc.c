@@ -28,9 +28,15 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "tl-parser.h"
-
+#if defined(_MSC_VER)
+#include <io.h>
+#include <stdint.h>
+#include <string.h>
+#include "wingetopt.h"
+#else
 #include <unistd.h>
+#endif
+#include "tl-parser.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -56,8 +62,16 @@ void usage (void) {
 }
 
 int vkext_write (const char *filename) {
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+  int f = 0;
+  assert(_sopen_s(&f, filename, _O_CREAT | _O_WRONLY | _O_TRUNC | _O_BINARY, _SH_DENYNO, _S_IREAD | _S_IWRITE) == 0);
+#elif defined(WIN32) || defined(_WIN32)
+  int f = open(filename, O_CREAT | O_WRONLY | O_TRUNC | O_BINARY, 0640);
+  assert(f >= 0);
+#else
   int f = open (filename, O_CREAT | O_WRONLY | O_TRUNC, 0640);
   assert (f >= 0);
+#endif
   write_types (f);
   close (f);
   return 0;

@@ -24,6 +24,21 @@
 
 #ifndef __TL_PARSER_NEW_H__
 #define __TL_PARSER_NEW_H__
+#if defined(WIN32) || defined(_WIN32)
+#define lrand48() rand()
+#define _PRINTF_INT64_ "I64"
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+#define read _read
+#define write _write
+#define close _close
+#define lseek _lseek
+#define strdup _strdup
+#define __attribute__(x)
+#endif
+#else
+#define _PRINTF_INT64_ "ll"
+#endif
+
 enum lex_type {
   lex_error,
   lex_char, 
