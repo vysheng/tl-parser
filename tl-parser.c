@@ -265,7 +265,7 @@ char *parse_lex (void) {
       parse.lex.type = lex_lc_ident;
       return (parse.lex.ptr = p);
     }
-    if (curch == '.') {
+    while (curch == '.') {
       parse.lex.flags |= 1;
       nextch ();
       if (is_uletter (curch)) {
