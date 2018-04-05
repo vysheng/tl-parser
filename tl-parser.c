@@ -25,7 +25,13 @@
 #define _FILE_OFFSET_BITS 64
 #include "config.h"
 
+#if defined(_MSC_VER)
+#include <io.h>
+#include <stdint.h>
+#include <string.h>
+#else
 #include <unistd.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -241,8 +247,58 @@ char *parse_lex (void) {
     parse.lex.len = 1;
     parse.lex.type = lex_char;   
     return (parse.lex.ptr = p);
-  case 'a'...'z':
-  case 'A'...'Z':
+  case 'a':
+  case 'b':
+  case 'c':
+  case 'd':
+  case 'e':
+  case 'f':
+  case 'g':
+  case 'h':
+  case 'i':
+  case 'j':
+  case 'k':
+  case 'l':
+  case 'm':
+  case 'n':
+  case 'o':
+  case 'p':
+  case 'q':
+  case 'r':
+  case 's':
+  case 't':
+  case 'u':
+  case 'v':
+  case 'w':
+  case 'x':
+  case 'y':
+  case 'z':
+  case 'A':
+  case 'B':
+  case 'C':
+  case 'D':
+  case 'E':
+  case 'F':
+  case 'G':
+  case 'H':
+  case 'I':
+  case 'J':
+  case 'K':
+  case 'L':
+  case 'M':
+  case 'N':
+  case 'O':
+  case 'P':
+  case 'Q':
+  case 'R':
+  case 'S':
+  case 'T':
+  case 'U':
+  case 'V':
+  case 'W':
+  case 'X':
+  case 'Y':
+  case 'Z':
     parse.lex.flags = 0;
     if (is_uletter (curch)) {
       while (is_ident_char (nextch ()));
@@ -305,7 +361,16 @@ char *parse_lex (void) {
     parse.lex.len = parse.text + parse.pos - p;
     parse.lex.type = lex_lc_ident;
     return (parse.lex.ptr = p);
-  case '0'...'9':
+  case '0':
+  case '1':
+  case '2':
+  case '3':
+  case '4':
+  case '5':
+  case '6':
+  case '7':
+  case '8':
+  case '9':
     while (is_digit (nextch ()));
     parse.lex.len = parse.text + parse.pos - p;
     parse.lex.type = lex_num;
@@ -321,7 +386,11 @@ char *parse_lex (void) {
 int expect (char *s) {
   if (!parse.lex.ptr || parse.lex.ptr == (void *)-1 || parse.lex.type == lex_error || parse.lex.type == lex_none || parse.lex.len != (int)strlen (s) || memcmp (s, parse.lex.ptr, parse.lex.len)) {
     static char buf[1000];
-    sprintf (buf, "Expected %s", s);
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+	sprintf_s(buf, 1000, "Expected %s", s);
+#else
+	sprintf(buf, "Expected %s", s);
+#endif  
     parse_error (buf);
     return -1;
   } else {
@@ -331,15 +400,27 @@ int expect (char *s) {
 }
 
 struct parse *tl_init_parse_file (const char *fname) {
-  int fd = open (fname, O_RDONLY);
-  if (fd < 0) {
-    fprintf (stderr, "Error %m\n");
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+	int fd = 0;
+	if (_sopen_s(&fd, fname, _O_RDONLY | _O_BINARY, _SH_DENYNO, _S_IREAD | _S_IWRITE) != 0) {
+		char errorStr[256] = { 0 };
+		strerror_s(errorStr, 256, errno);
+		fprintf(stderr, "Error %s\n", errorStr);
+#elif defined(WIN32) || defined(_WIN32)
+	int fd = open(fname, O_RDONLY | O_BINARY);
+	if (fd < 0) {
+		fprintf(stderr, "Error %s\n", strerror(errno));
+#else
+	int fd = open(fname, O_RDONLY);
+	if (fd < 0) {
+		fprintf(stderr, "Error %m\n");
+#endif 
     assert (0);
     return 0;
   }
   long long size = lseek (fd, 0, SEEK_END);
   if (size <= 0) {
-    fprintf (stderr, "size is %lld. Too small.\n", size);
+    fprintf (stderr, "size is %"_PRINTF_INT64_"d. Too small.\n", size);
     return 0;
   }
   static struct parse save;
@@ -1352,7 +1433,11 @@ void tl_buf_add_tree (struct tl_combinator_tree *T, int x) {
       tl_buf_add_string_q ((char *)v->data, -1, x);
       if (T->type == type_num && T->type_flags) {
         static char _buf[30];
-        sprintf (_buf, "+%lld", T->type_flags);
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+		sprintf_s(_buf, 30, "+%"_PRINTF_INT64_"d", T->type_flags);
+#else
+		sprintf(_buf, "+%"_PRINTF_INT64_"d", T->type_flags);
+#endif  
         tl_buf_add_string_q (_buf, -1, 0);
       }
     }
@@ -1379,7 +1464,7 @@ void tl_buf_add_tree (struct tl_combinator_tree *T, int x) {
   case act_nat_const:
     {
       static char _buf[30];
-      snprintf (_buf, 29, "%lld", T->type_flags);
+      snprintf (_buf, 29, "%"_PRINTF_INT64_"d", T->type_flags);
       tl_buf_add_string_q (_buf, -1, x);
       return;
     }
@@ -1389,7 +1474,11 @@ void tl_buf_add_tree (struct tl_combinator_tree *T, int x) {
       tl_buf_add_string_q ((char *)v->data, -1, x);
       tl_buf_add_string_q (".", -1, 0);
       static char _buf[30];
-      sprintf (_buf, "%lld", T->left->type_flags);
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+	  sprintf_s(_buf, 30, "%"_PRINTF_INT64_"d", T->left->type_flags);
+#else
+	  sprintf(_buf, "%"_PRINTF_INT64_"d", T->left->type_flags);
+#endif
       tl_buf_add_string_q (_buf, -1, 0);
       tl_buf_add_string_q ("?", -1, 0);
       tl_buf_add_tree (T->right, 0);
@@ -1421,7 +1510,11 @@ int tl_print_combinator (struct tl_constructor *c) {
   tl_buf_reset ();
   tl_buf_add_string_nospace (c->real_id ? c->real_id : c->id, -1);
   static char _buf[10];
-  sprintf (_buf, "#%08x", c->name);
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+  sprintf_s(_buf, 10, "#%08x", c->name);
+#else
+  sprintf(_buf, "#%08x", c->name);
+#endif
   tl_buf_add_string_nospace (_buf, -1);
   tl_buf_add_tree (c->left, 1);
   tl_buf_add_string ("=", -1);
@@ -1517,7 +1610,7 @@ struct tl_combinator_tree *tl_union (struct tl_combinator_tree *L, struct tl_com
       return 0;     
     }
     if (L->type_len > 0 && ((L->type_flags & 1) != (R->type == type_num || R->type == type_num_value))) {
-      TL_ERROR ("Argument types mistmatch: L->type_flags = %lld, R->type = %s\n", L->flags, TL_TYPE (R->type));
+      TL_ERROR ("Argument types mistmatch: L->type_flags = %"_PRINTF_INT64_"d, R->type = %s\n", L->flags, TL_TYPE (R->type));
       return 0;
     }
     v->type = type_type;
@@ -1904,7 +1997,11 @@ struct tl_combinator_tree *tl_parse_args134 (struct tree *T) {
       char *name = S->data;
       if (!name) {
         static char s[20];
-        sprintf (s, "%lld", lrand48 () * (1ll << 32) + lrand48 ());
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+		sprintf_s(s, 20, "%"_PRINTF_INT64_"d", lrand48() * (1ll << 32) + lrand48());
+#else
+		sprintf(s, "%"_PRINTF_INT64_"d", lrand48() * (1ll << 32) + lrand48());
+#endif
         name = s;
       }
       struct tl_var *v = tl_add_var (name, S, tt);
