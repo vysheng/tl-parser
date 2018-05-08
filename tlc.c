@@ -56,7 +56,7 @@ void usage (void) {
 }
 
 int vkext_write (const char *filename) {
-  int f = open (filename, O_CREAT | O_WRONLY | O_TRUNC, 0640);
+  int f = open (filename, O_CREAT | O_WRONLY | O_TRUNC | O_BINARY, 0640);
   assert (f >= 0);
   write_types (f);
   close (f);
