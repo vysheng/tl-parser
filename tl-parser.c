@@ -1903,7 +1903,7 @@ struct tl_combinator_tree *tl_parse_args134 (struct tree *T) {
       //assert (S->data);
       char *name = S->data;
       if (!name) {
-        static char s[20];
+        static char s[21];
         sprintf (s, "%lld", lrand48 () * (1ll << 32) + lrand48 ());
         name = s;
       }
