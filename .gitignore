@@ -1,8 +1,1 @@
-Makefile
-config.h
-dep
-objs
-bin
-autom4te.cache
-config.log
-config.status
+build/
