@@ -22,21 +22,21 @@
 
 */
 
-#include "config.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
 #include "tl-parser.h"
 
+#ifndef _WIN32
 #include <unistd.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
 #include <signal.h>
-#include "config.h"
 
 #ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
@@ -56,7 +56,11 @@ void usage (void) {
 }
 
 int vkext_write (const char *filename) {
+#ifdef _WIN32
+    int f = _open(filename, _O_CREAT | _O_WRONLY | _O_TRUNC | _O_BINARY, 0640);
+#else
   int f = open (filename, O_CREAT | O_WRONLY | O_TRUNC, 0640);
+#endif
   assert (f >= 0);
   write_types (f);
   close (f);

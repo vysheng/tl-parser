@@ -203,4 +203,24 @@ void write_types (int f);
 #define FLAG_DEFAULT_CONSTRUCTOR (1 << 25)
 #define FLAG_EMPTY (1 << 10)
 
+#ifdef NDEBUG
+#undef assert
+#define assert(x) if (!(x)) { fprintf(stderr, "Assertion error!\n"); abort(); }
+#endif
+
+#ifdef _WIN32
+#include <io.h>
+#include "wgetopt.h"
+
+#define __attribute__(x)
+
+#define lrand48() rand()
+#define strdup _strdup
+#define lseek _lseek
+#define open _open
+#define close _close
+#define write _write
+#define read _read
+#endif
+
 #endif

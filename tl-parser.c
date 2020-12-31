@@ -23,9 +23,11 @@
 */
 
 #define _FILE_OFFSET_BITS 64
-#include "config.h"
 
+#ifndef _WIN32
 #include <unistd.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -34,12 +36,11 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
-#include <zlib.h>
 #include "portable_endian.h"
 #include "tl-parser-tree.h"
 #include "tl-parser.h"
+#include "crc32.h"
 #include "tl-tl.h"
-#include "config.h"
 
 extern int verbosity;
 extern int schema_version;
@@ -77,8 +78,6 @@ struct tree *tree_alloc (void) {
   memset (T, 0, sizeof (*T));
   return T;
 }
-
-#define CRC32_INITIAL crc32 (0, 0, 0)
 
 void tree_add_child (struct tree *P, struct tree *C) {
   if (P->nc == P->size) {
@@ -241,8 +240,58 @@ char *parse_lex (void) {
     parse.lex.len = 1;
     parse.lex.type = lex_char;   
     return (parse.lex.ptr = p);
-  case 'a'...'z':
-  case 'A'...'Z':
+  case 'a':
+  case 'b':
+  case 'c':
+  case 'd':
+  case 'e':
+  case 'f':
+  case 'g':
+  case 'h':
+  case 'i':
+  case 'j':
+  case 'k':
+  case 'l':
+  case 'm':
+  case 'n':
+  case 'o':
+  case 'p':
+  case 'q':
+  case 'r':
+  case 's':
+  case 't':
+  case 'u':
+  case 'v':
+  case 'w':
+  case 'x':
+  case 'y':
+  case 'z':
+  case 'A':
+  case 'B':
+  case 'C':
+  case 'D':
+  case 'E':
+  case 'F':
+  case 'G':
+  case 'H':
+  case 'I':
+  case 'J':
+  case 'K':
+  case 'L':
+  case 'M':
+  case 'N':
+  case 'O':
+  case 'P':
+  case 'Q':
+  case 'R':
+  case 'S':
+  case 'T':
+  case 'U':
+  case 'V':
+  case 'W':
+  case 'X':
+  case 'Y':
+  case 'Z':
     parse.lex.flags = 0;
     if (is_uletter (curch)) {
       while (is_ident_char (nextch ()));
@@ -305,7 +354,16 @@ char *parse_lex (void) {
     parse.lex.len = parse.text + parse.pos - p;
     parse.lex.type = lex_lc_ident;
     return (parse.lex.ptr = p);
-  case '0'...'9':
+  case '0':
+  case '1':
+  case '2':
+  case '3':
+  case '4':
+  case '5':
+  case '6':
+  case '7':
+  case '8':
+  case '9':
     while (is_digit (nextch ()));
     parse.lex.len = parse.text + parse.pos - p;
     parse.lex.type = lex_num;
@@ -1412,7 +1470,7 @@ int tl_count_combinator_name (struct tl_constructor *c) {
   tl_buf_add_tree (c->right, 1);
   //fprintf (stderr, "%.*s\n", buf_pos, buf);
   if (!c->name) {
-    c->name = crc32 (CRC32_INITIAL, (void *) buf, buf_pos);
+    c->name = compute_crc32 (buf, buf_pos);
   }
   return c->name;
 }
@@ -1430,7 +1488,7 @@ int tl_print_combinator (struct tl_constructor *c) {
     fprintf (stderr, "%.*s\n", buf_pos, buf);
   }
 /*  if (!c->name) {
-    c->name = crc32 (CRC32_INITIAL, (void *) bbuf, buf_pos);
+    c->name = compute_crc32 (buf, buf_pos);
   }*/
   return c->name;
 }
