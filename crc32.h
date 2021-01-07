@@ -28,29 +28,7 @@
 extern "C" {
 #endif
 
-extern unsigned int crc32_table[256];
-unsigned crc32_partial (const void *data, int len, unsigned crc);
-  //unsigned crc32_partial_fast (const void *data, int len, unsigned crc);
-  //unsigned crc32_partial_fastest (const void *data, int len, unsigned crc);
-unsigned compute_crc32 (const void *data, int len);
-unsigned compute_crc32_combine (unsigned crc1, unsigned crc2, int len2);
-
-extern unsigned long long crc64_table[256];
-unsigned long long crc64_partial (const void *data, int len, unsigned long long crc);
-unsigned long long crc64 (const void *data, int len);
-
-//unsigned gf32_matrix_times (unsigned *matrix, unsigned vector);
-
-/* crc32_check_and_repair returns
-   0 : Cyclic redundancy check is ok
-   1 : Cyclic redundancy check fails, but we fix one bit in input
-   2 : Cyclic redundancy check fails, but we fix one bit in input_crc32
-  -1 : Cyclic redundancy check fails, no repair possible. 
-       In this case *input_crc32 will be equal crc32 (input, l)
-
-  Case force_exit == 1 (case 1, 2: kprintf call, case -1: assert fail).
-*/
-int crc32_check_and_repair (void *input, int l, unsigned *input_crc32, int force_exit);
+unsigned int compute_crc32 (const void *data, int len);
 
 #ifdef __cplusplus
 }
