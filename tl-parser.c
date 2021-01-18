@@ -1962,7 +1962,7 @@ struct tl_combinator_tree *tl_parse_args134 (struct tree *T) {
       char *name = S->data;
       if (!name) {
         static char s[20];
-        sprintf (s, "%lld", lrand48 () * (1ll << 32) + lrand48 ());
+        sprintf (s, "%llu", lrand48 () * (1ll << 32) + lrand48 ());
         name = s;
       }
       struct tl_var *v = tl_add_var (name, S, tt);
